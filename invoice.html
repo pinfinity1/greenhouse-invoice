@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بیجک گلخانه</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"
+        type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" />
+    <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Vazirmatn', 'sans-serif'] },
+                    colors: { brand: { 600: '#2563eb', 800: '#1e40af' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+
+        .datepicker-plot-area {
+            font-family: 'Vazirmatn', sans-serif !important;
+            border-radius: 8px !important;
+            border: none !important;
+        }
+
+        .datepicker-header {
+            background-color: #1e40af !important;
+            color: white !important;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .compact-table th {
+            font-size: 12px;
+            padding: 8px;
+            color: #64748b;
+            background: #f1f5f9;
+        }
+
+        .compact-table td {
+            padding: 4px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .row-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 10px 4px;
+            font-weight: bold;
+            color: #334155;
+            outline: none;
+        }
+
+        .row-input:focus {
+            background: #f0f9ff;
+            color: #000;
+        }
+
+        .input-box {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .input-box:focus-within {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: bold;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .clean-input {
+            width: 100%;
+            outline: none;
+            font-weight: bold;
+            color: #1e293b;
+            font-size: 14px;
+            background: transparent;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .screen-only {
+                display: none !important;
+            }
+
+            #print-area,
+            #print-area * {
+                visibility: visible;
+            }
+
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+            }
+
+            @page {
+                size: A5;
+                margin: 0.5cm;
+            }
+
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: 2px solid #000;
+            }
+
+            .print-table th,
+            .print-table td {
+                border: 1px solid #000;
+                padding: 6px;
+                text-align: center;
+                font-size: 12pt;
+            }
+
+            .print-table th {
+                background-color: #f3f4f6 !important;
+                font-weight: 900;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-800 min-h-screen p-2 md:p-6 flex justify-center items-start">
+
+    <div
+        class="screen-only w-full max-w-2xl bg-white shadow-xl rounded-xl border border-gray-200 overflow-hidden relative pb-24">
+
+        <div class="bg-brand-800 text-white p-4 flex justify-between items-center shadow-md z-10 relative">
+            <div>
+                <h1 class="font-black text-xl">بیجک خروج</h1>
+                <p class="text-[10px] opacity-80">سیستم مدیریت</p>
+            </div>
+            <div class="flex gap-2">
+                <div class="bg-white/10 rounded-lg p-2 text-center backdrop-blur-sm">
+                    <span class="text-[10px] block opacity-70 mb-1">شماره</span>
+                    <input type="text" inputmode="numeric" id="invoiceNo"
+                        class="w-16 bg-transparent text-center font-bold outline-none text-white border-b border-white/30 h-5">
+                </div>
+                <div class="bg-white/10 rounded-lg p-2 text-center backdrop-blur-sm">
+                    <span class="text-[10px] block opacity-70 mb-1">تاریخ</span>
+                    <input type="text" id="dateInput"
+                        class="w-20 bg-transparent text-center font-bold outline-none text-white border-b border-white/30 h-5 cursor-pointer"
+                        readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 border-b border-gray-200">
+            <div class="input-box">
+                <label class="input-label">خریدار (تحویل گیرنده):</label>
+                <input type="text" id="buyerName" class="clean-input" placeholder="نام خریدار را وارد کنید...">
+            </div>
+            <div class="input-box">
+                <label class="input-label">راننده / حامل:</label>
+                <input type="text" id="driverName" class="clean-input" placeholder="نام راننده...">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full compact-table">
+                <thead>
+                    <tr>
+                        <th class="w-10 rounded-tr-lg">#</th>
+                        <th class="text-right px-4">نام گل</th>
+                        <th class="w-20 text-center">تعداد</th>
+                        <th class="w-10 rounded-tl-lg"></th>
+                    </tr>
+                </thead>
+                <tbody id="inputTableBody" class="bg-white"></tbody>
+            </table>
+            <button onclick="addRow()"
+                class="w-full py-3 text-brand-600 font-bold text-sm bg-white hover:bg-gray-50 border-t border-gray-100 transition flex items-center justify-center gap-2">
+                <span class="text-lg font-black">+</span> سطر جدید
+            </button>
+        </div>
+
+        <div class="bg-yellow-50 border-y border-yellow-100 p-3 flex justify-between items-center">
+            <span class="text-sm font-bold text-yellow-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                تعداد خوشه‌ای (اضافه):
+            </span>
+            <input type="text" inputmode="numeric" id="clusterQty" oninput="calculateTotal()"
+                class="w-24 bg-white border border-yellow-300 rounded-lg text-center font-bold text-lg p-1 outline-none focus:border-yellow-500"
+                placeholder="0">
+        </div>
+
+        <div class="h-4 w-full bg-gray-50"></div>
+
+        <div
+            class="fixed bottom-0 left-0 right-0 md:absolute bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] p-3 md:p-4 z-50">
+            <div class="max-w-2xl mx-auto flex gap-3 items-center">
+
+                <button onclick="resetForm()"
+                    class="bg-white border-2 border-red-100 text-red-500 h-12 w-12 rounded-xl flex items-center justify-center shadow-sm hover:bg-red-50 hover:border-red-200 transition"
+                    title="بیجک جدید">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+
+                <div class="flex flex-col flex-grow text-center md:text-right px-2">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">جمع کل نهایی</span>
+                    <span id="screenGrandTotal" class="text-2xl font-black text-brand-800 leading-none">۰</span>
+                </div>
+
+                <button onclick="prepareAndPrint()"
+                    class="flex-grow-[2] bg-gray-900 text-white h-12 rounded-xl font-bold text-md shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    چاپ بیجک
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="print-area" class="hidden font-sans text-black">
+        <div class="border-2 border-black rounded-lg p-4 mb-4">
+            <div class="flex justify-between items-start border-b-2 border-black pb-4 mb-4">
+                <div class="text-center w-1/3 pt-3">
+                    <h2 class="text-2xl font-bold">فاکتور فروش</h2>
+                </div>
+                <div class="w-1/3 flex flex-col gap-2 text-sm">
+                    <div class="flex justify-between"><span class="font-bold">شماره:</span><span id="printNo"
+                            class="font-mono font-bold text-lg"></span></div>
+                    <div class="flex justify-between"><span class="font-bold">تاریخ:</span><span id="printDate"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-4 text-sm">
+                <div class="w-1/2 flex gap-2"><span class="font-bold">خریدار:</span><span id="printBuyer"
+                        class="border-b border-dotted border-black flex-grow font-bold px-1"></span></div>
+                <div class="w-1/2 flex gap-2"><span class="font-bold">راننده:</span><span id="printDriver"
+                        class="border-b border-dotted border-black flex-grow font-bold px-1"></span></div>
+            </div>
+        </div>
+        <table class="print-table mb-4">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">ردیف</th>
+                    <th style="width: 70%;">شرح کالا</th>
+                    <th style="width: 20%;">تعداد</th>
+                </tr>
+            </thead>
+            <tbody id="printTableBody"></tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" class="text-left font-bold pl-4">جمع اقلام لیست:</td>
+                    <td id="printSumRows" class="font-bold"></td>
+                </tr>
+                <tr id="printClusterRow">
+                    <td colspan="2" class="text-left font-bold pl-4">تعداد خوشه‌ای (اضافه):</td>
+                    <td id="printCluster" class="font-bold"></td>
+                </tr>
+                <tr style="background-color: #e5e7eb;">
+                    <td colspan="2" class="text-left font-black text-lg pl-4">جمع کــل نهایی:</td>
+                    <td id="printGrandTotal" class="font-black text-lg"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <datalist id="flowerList">
+        <option value="سامورایی">
+        <option value="آنجل">
+        <option value="آوالانچ">
+        <option value="رز هلندی">
+        <option value="لیلیوم">
+        <option value="داوودی">
+        <option value="آلستر">
+        <option value="ژربرا">
+        <option value="مریم">
+        <option value="انتریوم">
+    </datalist>
+
+    <script>
+        function toPersianDigits(n) { const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']; return n.toString().replace(/\d/g, x => farsiDigits[x]); }
+        function toEnglishDigits(str) { if (!str) return 0; return parseInt(str.toString().replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[^0-9]/g, '')) || 0; }
+
+        $(document).ready(function () {
+            $('#dateInput').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: true, autoClose: true, calendar: { persian: { locale: 'fa' } } });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedInvoiceNo = localStorage.getItem('invoiceNumber_v2');
+            const nextNo = savedInvoiceNo ? parseInt(savedInvoiceNo) + 1 : 1;
+            document.getElementById('invoiceNo').value = toPersianDigits(nextNo);
+            for (let i = 0; i < 3; i++) addRow();
+        });
+
+        function addRow() {
+            const tbody = document.getElementById('inputTableBody');
+            const rowCount = tbody.rows.length + 1;
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td class="text-center text-xs text-gray-400 row-num font-bold">${toPersianDigits(rowCount)}</td>
+                <td class="px-2">
+                    <input type="text" list="flowerList" oninput="calculateTotal()" class="item-name row-input border-b border-dashed border-gray-300 focus:border-brand-600 focus:border-solid" placeholder="نام گل">
+                </td>
+                <td class="px-2">
+                    <input type="text" inputmode="numeric" oninput="calculateTotal()" class="qty-input row-input text-center text-lg text-brand-600" placeholder="0">
+                </td>
+                <td class="text-center">
+                    <button onclick="deleteRow(this)" class="w-8 h-8 rounded-full text-red-300 hover:text-red-500 hover:bg-red-50 font-bold text-xl flex items-center justify-center transition">×</button>
+                </td>
+            `;
+        }
+
+        function deleteRow(btn) {
+            btn.closest('tr').remove();
+            reindexRows();
+            calculateTotal();
+        }
+
+        function reindexRows() {
+            document.querySelectorAll('.row-num').forEach((el, index) => { el.innerText = toPersianDigits(index + 1); });
+        }
+
+        function calculateTotal() {
+            let sum = 0;
+            document.querySelectorAll('#inputTableBody tr').forEach(row => {
+                const nameInput = row.querySelector('.item-name');
+                const qtyInput = row.querySelector('.qty-input');
+                if (nameInput && qtyInput && nameInput.value.trim() !== "") {
+                    sum += toEnglishDigits(qtyInput.value);
+                }
+            });
+            const cluster = toEnglishDigits(document.getElementById('clusterQty').value);
+            const grandTotal = sum + cluster;
+            document.getElementById('screenGrandTotal').innerText = toPersianDigits(grandTotal);
+            return { sum, cluster, grandTotal };
+        }
+
+        function prepareAndPrint() {
+            const buyerName = document.getElementById('buyerName').value || 'ناشناس';
+            const date = document.getElementById('dateInput').value.replace(/\//g, '-');
+            const invNo = document.getElementById('invoiceNo').value;
+
+            document.getElementById('printNo').innerText = invNo;
+            document.getElementById('printDate').innerText = document.getElementById('dateInput').value;
+            document.getElementById('printBuyer').innerText = buyerName;
+            document.getElementById('printDriver').innerText = document.getElementById('driverName').value || '................';
+
+            const printTbody = document.getElementById('printTableBody');
+            printTbody.innerHTML = '';
+            let printIndex = 1;
+
+            document.querySelectorAll('#inputTableBody tr').forEach(row => {
+                const name = row.querySelector('.item-name').value;
+                const qty = toEnglishDigits(row.querySelector('.qty-input').value);
+                if (name && name.trim() !== "") {
+                    printTbody.innerHTML += `<tr><td>${toPersianDigits(printIndex++)}</td><td style="text-align: right; padding-right: 15px;">${name}</td><td>${toPersianDigits(qty)}</td></tr>`;
+                }
+            });
+
+            if (printIndex === 1) printTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-gray-400">خالی</td></tr>';
+
+            const totals = calculateTotal();
+            document.getElementById('printSumRows').innerText = toPersianDigits(totals.sum);
+
+            const clusterRow = document.getElementById('printClusterRow');
+            if (totals.cluster > 0) {
+                clusterRow.style.display = 'table-row';
+                document.getElementById('printCluster').innerText = toPersianDigits(totals.cluster);
+            } else {
+                clusterRow.style.display = 'none';
+            }
+
+            document.getElementById('printGrandTotal').innerText = toPersianDigits(totals.grandTotal);
+
+            const currentNo = toEnglishDigits(document.getElementById('invoiceNo').value);
+            localStorage.setItem('invoiceNumber_v2', currentNo);
+
+            document.title = `بیجک - ${buyerName} - ${date}`;
+            window.print();
+        }
+
+        // تابع ریست کردن فرم (جدید)
+        function resetForm() {
+            if (confirm('آیا می‌خواهید فرم را پاک کرده و بیجک جدید صادر کنید؟')) {
+                window.location.reload();
+            }
+        }
+
+        document.getElementById('invoiceNo').addEventListener('change', (e) => {
+            const val = toEnglishDigits(e.target.value);
+            e.target.value = toPersianDigits(val);
+            localStorage.setItem('invoiceNumber_v2', val - 1);
+        });
+    </script>
+</body>
+
+</html>
