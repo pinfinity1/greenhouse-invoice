@@ -218,12 +218,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                تعداد خوشه‌ای (اضافه):
+                رز مینیاتوری (خوشه‌ای):
             </span>
+
             <input type="text" inputmode="numeric" id="clusterQty" oninput="calculateTotal()"
                 class="w-24 bg-white border border-yellow-300 rounded-lg text-center font-bold text-lg p-1 outline-none focus:border-yellow-500"
                 placeholder="0">
         </div>
+
 
         <div class="h-4 w-full bg-gray-50"></div>
 
@@ -261,15 +263,24 @@
 
     <div id="print-area" class="hidden font-sans text-black">
         <div class="border-2 border-black rounded-lg p-4 mb-4">
-            <div class="flex justify-between items-start border-b-2 border-black pb-4 mb-4">
+            <div class="flex flex-wrap justify-between items-start border-b-2 border-black pb-4 mb-4">
                 <div class="text-center w-1/3 pt-3">
-                    <h2 class="text-2xl font-bold">فاکتور فروش</h2>
+                    <h2 class="text-xl font-bold">فاکتور فروش</h2>
+                    <div class="text-center mb-4">
+                        <h1 class="font-black" id="printGreenhouseName">گلخانه گل رز کیان</h1>
+                    </div>
+
                 </div>
                 <div class="w-1/3 flex flex-col gap-2 text-sm">
                     <div class="flex justify-between"><span class="font-bold">شماره:</span><span id="printNo"
                             class="font-mono font-bold text-lg"></span></div>
                     <div class="flex justify-between"><span class="font-bold">تاریخ:</span><span id="printDate"></span>
                     </div>
+                </div>
+                <div class="w-full flex items-center justify-between">
+                    <p class="font-bold" id="printOwnerPhone">شماره: ۰۹۱۳۲۰۸۰۹۶۳</p>
+                    <p class="font-bold" id="printGreenhouseAddress">آدرس:
+                        ................................................</p>
                 </div>
             </div>
             <div class="flex gap-4 text-sm">
@@ -294,7 +305,7 @@
                     <td id="printSumRows" class="font-bold"></td>
                 </tr>
                 <tr id="printClusterRow">
-                    <td colspan="2" class="text-left font-bold pl-4">تعداد خوشه‌ای (اضافه):</td>
+                    <td colspan="2" class="text-left font-bold pl-4">رز مینیاتوری (خوشه‌ای):</td>
                     <td id="printCluster" class="font-bold"></td>
                 </tr>
                 <tr style="background-color: #e5e7eb;">
@@ -308,14 +319,12 @@
     <datalist id="flowerList">
         <option value="سامورایی">
         <option value="آنجل">
-        <option value="آوالانچ">
-        <option value="رز هلندی">
-        <option value="لیلیوم">
-        <option value="داوودی">
-        <option value="آلستر">
-        <option value="ژربرا">
-        <option value="مریم">
-        <option value="انتریوم">
+        <option value="آولانچ">
+        <option value="جومیلیا">
+        <option value="ریوایول">
+        <option value="نایتینگ">
+        <option value="رنگ شده">
+        <option value="رنگی بوته">
     </datalist>
 
     <script>
