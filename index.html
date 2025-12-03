@@ -337,17 +337,31 @@
             const savedInvoiceNo = localStorage.getItem('invoiceNumber_v2');
             const nextNo = savedInvoiceNo ? parseInt(savedInvoiceNo) + 1 : 1;
             document.getElementById('invoiceNo').value = toPersianDigits(nextNo);
-            for (let i = 0; i < 3; i++) addRow();
+
+            // لیست گل‌های پیش‌فرض
+            const defaultFlowers = [
+                "سامورایی",
+                "آنجل",
+                "آولانچ",
+                "جومیلیا",
+                "ریوایول",
+                "نایتینگ",
+                "رنگ شده",
+                "رنگی بوته"
+            ];
+
+            // ایجاد ردیف برای هر گل در لیست بالا
+            defaultFlowers.forEach(flower => addRow(flower));
         });
 
-        function addRow() {
+        function addRow(defaultName = "") {
             const tbody = document.getElementById('inputTableBody');
             const rowCount = tbody.rows.length + 1;
             const row = tbody.insertRow();
             row.innerHTML = `
                 <td class="text-center text-xs text-gray-400 row-num font-bold">${toPersianDigits(rowCount)}</td>
                 <td class="px-2">
-                    <input type="text" list="flowerList" oninput="calculateTotal()" class="item-name row-input border-b border-dashed border-gray-300 focus:border-brand-600 focus:border-solid" placeholder="نام گل">
+                    <input type="text" list="flowerList" value="${defaultName}" oninput="calculateTotal()" class="item-name row-input border-b border-dashed border-gray-300 focus:border-brand-600 focus:border-solid" placeholder="نام گل">
                 </td>
                 <td class="px-2">
                     <input type="text" inputmode="numeric" oninput="calculateTotal()" class="qty-input row-input text-center text-lg text-brand-600" placeholder="0">
@@ -400,7 +414,10 @@
             document.querySelectorAll('#inputTableBody tr').forEach(row => {
                 const name = row.querySelector('.item-name').value;
                 const qty = toEnglishDigits(row.querySelector('.qty-input').value);
-                if (name && name.trim() !== "") {
+                // شرط چاپ: فقط اگر نام گل وجود داشته باشد و مقدار آن بیشتر از صفر باشد
+                // یا اگر کاربر می‌خواهد حتی با مقدار صفر چاپ شود، بخش دوم شرط را بردارید.
+                // در اینجا فرض بر این است که فقط گل‌هایی که تعداد دارند چاپ شوند تا کاغذ هدر نرود.
+                if (name && name.trim() !== "" && qty > 0) {
                     printTbody.innerHTML += `<tr><td>${toPersianDigits(printIndex++)}</td><td style="text-align: right; padding-right: 15px;">${name}</td><td>${toPersianDigits(qty)}</td></tr>`;
                 }
             });
