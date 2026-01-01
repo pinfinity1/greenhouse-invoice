@@ -9,9 +9,10 @@
         type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" />
-    <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
-    <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker/dist/css/persian-datepicker.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/persian-date/dist/persian-date.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker/dist/js/persian-datepicker.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -330,7 +331,13 @@
         function toEnglishDigits(str) { if (!str) return 0; return parseInt(str.toString().replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[^0-9]/g, '')) || 0; }
 
         $(document).ready(function () {
-            $('#dateInput').persianDatepicker({ format: 'YYYY/MM/DD', initialValue: true, autoClose: true, calendar: { persian: { locale: 'fa' } } });
+            // تنظیمات تقویم
+            $('#dateInput').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                initialValue: true,
+                autoClose: true,
+                calendar: { persian: { locale: 'fa' } }
+            });
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -399,11 +406,27 @@
 
         function prepareAndPrint() {
             const buyerName = document.getElementById('buyerName').value || 'ناشناس';
-            const date = document.getElementById('dateInput').value.replace(/\//g, '-');
+            const dateVal = document.getElementById('dateInput').value;
             const invNo = document.getElementById('invoiceNo').value;
 
             document.getElementById('printNo').innerText = invNo;
-            document.getElementById('printDate').innerText = document.getElementById('dateInput').value;
+
+            // --- بخش اضافه کردن روز هفته ---
+            try {
+                // تبدیل اعداد فارسی تاریخ به انگلیسی برای پردازش
+                const dateParts = dateVal.split('/').map(p => toEnglishDigits(p));
+                // ساخت شیء تاریخ از روی ورودی
+                const pDate = new persianDate(dateParts);
+                // دریافت نام روز هفته
+                const dayName = pDate.format('dddd');
+                // نمایش به صورت: دوشنبه - ۱۴۰۲/۱۰/۰۱
+                document.getElementById('printDate').innerText = `${dayName} - ${dateVal}`;
+            } catch (e) {
+                // در صورت بروز خطا، فقط تاریخ را نشان بده
+                document.getElementById('printDate').innerText = dateVal;
+            }
+            // ---------------------------------
+
             document.getElementById('printBuyer').innerText = buyerName;
             document.getElementById('printDriver').innerText = document.getElementById('driverName').value || '................';
 
@@ -414,9 +437,7 @@
             document.querySelectorAll('#inputTableBody tr').forEach(row => {
                 const name = row.querySelector('.item-name').value;
                 const qty = toEnglishDigits(row.querySelector('.qty-input').value);
-                // شرط چاپ: فقط اگر نام گل وجود داشته باشد و مقدار آن بیشتر از صفر باشد
-                // یا اگر کاربر می‌خواهد حتی با مقدار صفر چاپ شود، بخش دوم شرط را بردارید.
-                // در اینجا فرض بر این است که فقط گل‌هایی که تعداد دارند چاپ شوند تا کاغذ هدر نرود.
+
                 if (name && name.trim() !== "" && qty > 0) {
                     printTbody.innerHTML += `<tr><td>${toPersianDigits(printIndex++)}</td><td style="text-align: right; padding-right: 15px;">${name}</td><td>${toPersianDigits(qty)}</td></tr>`;
                 }
@@ -440,11 +461,10 @@
             const currentNo = toEnglishDigits(document.getElementById('invoiceNo').value);
             localStorage.setItem('invoiceNumber_v2', currentNo);
 
-            document.title = `بیجک - ${buyerName} - ${date}`;
+            document.title = `بیجک - ${buyerName} - ${dateVal}`;
             window.print();
         }
 
-        // تابع ریست کردن فرم (جدید)
         function resetForm() {
             if (confirm('آیا می‌خواهید فرم را پاک کرده و بیجک جدید صادر کنید؟')) {
                 window.location.reload();
