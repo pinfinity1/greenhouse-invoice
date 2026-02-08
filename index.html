@@ -405,65 +405,70 @@
         }
 
         function prepareAndPrint() {
-            const buyerName = document.getElementById('buyerName').value || 'ناشناس';
-            const dateVal = document.getElementById('dateInput').value;
-            const invNo = document.getElementById('invoiceNo').value;
+    const buyerName = document.getElementById('buyerName').value || 'ناشناس';
+    const dateVal = document.getElementById('dateInput').value;
+    const invNo = document.getElementById('invoiceNo').value;
 
-            document.getElementById('printNo').innerText = invNo;
+    document.getElementById('printNo').innerText = invNo;
 
-            // --- بخش اضافه کردن روز هفته ---
-            try {
-                // تبدیل اعداد فارسی تاریخ به انگلیسی برای پردازش
-                const dateParts = dateVal.split('/').map(p => toEnglishDigits(p));
-                // ساخت شیء تاریخ از روی ورودی
-                const pDate = new persianDate(dateParts);
-                // دریافت نام روز هفته
-                const dayName = pDate.format('dddd');
-                // نمایش به صورت: دوشنبه - ۱۴۰۲/۱۰/۰۱
-                document.getElementById('printDate').innerText = `${dayName} - ${dateVal}`;
-            } catch (e) {
-                // در صورت بروز خطا، فقط تاریخ را نشان بده
-                document.getElementById('printDate').innerText = dateVal;
-            }
-            // ---------------------------------
+    // --- بخش اصلاح شده برای محاسبه دقیق روز هفته ---
+    try {
+        // تبدیل اعداد فارسی تاریخ به انگلیسی
+        const dateParts = dateVal.split('/').map(p => toEnglishDigits(p));
+        
+        // نکته مهم: در آرایه ورودی persianDate، ماه باید بین ۰ تا ۱۱ باشد.
+        // بنابراین از بخش ماه (dateParts[1]) یک واحد کم می‌کنیم.
+        const pDate = new persianDate([dateParts[0], dateParts[1] - 1, dateParts[2]]);
+        
+        const dayName = pDate.format('dddd'); // نام روز هفته (مثلاً یکشنبه)
+        
+        document.getElementById('printDate').innerText = `${dayName} - ${dateVal}`;
+    } catch (e) {
+        console.error(e);
+        document.getElementById('printDate').innerText = dateVal;
+    }
+    // ------------------------------------------------
 
-            document.getElementById('printBuyer').innerText = buyerName;
-            document.getElementById('printDriver').innerText = document.getElementById('driverName').value || '................';
+    document.getElementById('printBuyer').innerText = buyerName;
+    // ... ادامه کدها بدون تغییر ...
+    document.getElementById('printDriver').innerText = document.getElementById('driverName').value || '................';
+    
+    // بقیه تابع prepareAndPrint را مثل قبل ادامه دهید
+    const printTbody = document.getElementById('printTableBody');
+    printTbody.innerHTML = '';
+    let printIndex = 1;
 
-            const printTbody = document.getElementById('printTableBody');
-            printTbody.innerHTML = '';
-            let printIndex = 1;
+    document.querySelectorAll('#inputTableBody tr').forEach(row => {
+        const name = row.querySelector('.item-name').value;
+        const qty = toEnglishDigits(row.querySelector('.qty-input').value);
 
-            document.querySelectorAll('#inputTableBody tr').forEach(row => {
-                const name = row.querySelector('.item-name').value;
-                const qty = toEnglishDigits(row.querySelector('.qty-input').value);
-
-                if (name && name.trim() !== "" && qty > 0) {
-                    printTbody.innerHTML += `<tr><td>${toPersianDigits(printIndex++)}</td><td style="text-align: right; padding-right: 15px;">${name}</td><td>${toPersianDigits(qty)}</td></tr>`;
-                }
-            });
-
-            if (printIndex === 1) printTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-gray-400">خالی</td></tr>';
-
-            const totals = calculateTotal();
-            document.getElementById('printSumRows').innerText = toPersianDigits(totals.sum);
-
-            const clusterRow = document.getElementById('printClusterRow');
-            if (totals.cluster > 0) {
-                clusterRow.style.display = 'table-row';
-                document.getElementById('printCluster').innerText = toPersianDigits(totals.cluster);
-            } else {
-                clusterRow.style.display = 'none';
-            }
-
-            document.getElementById('printGrandTotal').innerText = toPersianDigits(totals.grandTotal);
-
-            const currentNo = toEnglishDigits(document.getElementById('invoiceNo').value);
-            localStorage.setItem('invoiceNumber_v2', currentNo);
-
-            document.title = `بیجک - ${buyerName} - ${dateVal}`;
-            window.print();
+        if (name && name.trim() !== "" && qty > 0) {
+            printTbody.innerHTML += `<tr><td>${toPersianDigits(printIndex++)}</td><td style="text-align: right; padding-right: 15px;">${name}</td><td>${toPersianDigits(qty)}</td></tr>`;
         }
+    });
+    
+    // ... ادامه کدها ...
+    if (printIndex === 1) printTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-gray-400">خالی</td></tr>';
+
+    const totals = calculateTotal();
+    document.getElementById('printSumRows').innerText = toPersianDigits(totals.sum);
+
+    const clusterRow = document.getElementById('printClusterRow');
+    if (totals.cluster > 0) {
+        clusterRow.style.display = 'table-row';
+        document.getElementById('printCluster').innerText = toPersianDigits(totals.cluster);
+    } else {
+        clusterRow.style.display = 'none';
+    }
+
+    document.getElementById('printGrandTotal').innerText = toPersianDigits(totals.grandTotal);
+
+    const currentNo = toEnglishDigits(document.getElementById('invoiceNo').value);
+    localStorage.setItem('invoiceNumber_v2', currentNo);
+
+    document.title = `بیجک - ${buyerName} - ${dateVal}`;
+    window.print();
+}
 
         function resetForm() {
             if (confirm('آیا می‌خواهید فرم را پاک کرده و بیجک جدید صادر کنید؟')) {
