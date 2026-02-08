@@ -336,6 +336,7 @@
                 format: 'YYYY/MM/DD',
                 initialValue: true,
                 autoClose: true,
+                observer: true,
                 calendar: { persian: { locale: 'fa' } }
             });
         });
@@ -405,71 +406,74 @@
         }
 
         function prepareAndPrint() {
-    const buyerName = document.getElementById('buyerName').value || 'ناشناس';
-    const dateVal = document.getElementById('dateInput').value;
-    const invNo = document.getElementById('invoiceNo').value;
+            const buyerName = document.getElementById('buyerName').value || 'ناشناس';
+            const dateVal = document.getElementById('dateInput').value;
+            const invNo = document.getElementById('invoiceNo').value;
 
-    document.getElementById('printNo').innerText = invNo;
+            document.getElementById('printNo').innerText = invNo;
 
-    // --- بخش اصلاح شده برای محاسبه دقیق روز هفته ---
-    try {
-        // تبدیل اعداد فارسی تاریخ به انگلیسی
-        const dateParts = dateVal.split('/').map(p => toEnglishDigits(p));
-        
-        // نکته مهم: در آرایه ورودی persianDate، ماه باید بین ۰ تا ۱۱ باشد.
-        // بنابراین از بخش ماه (dateParts[1]) یک واحد کم می‌کنیم.
-        const pDate = new persianDate([dateParts[0], dateParts[1] - 1, dateParts[2]]);
-        
-        const dayName = pDate.format('dddd'); // نام روز هفته (مثلاً یکشنبه)
-        
-        document.getElementById('printDate').innerText = `${dayName} - ${dateVal}`;
-    } catch (e) {
-        console.error(e);
-        document.getElementById('printDate').innerText = dateVal;
-    }
-    // ------------------------------------------------
+            // --- شروع بخش اصلاح شده تاریخ ---
+            try {
+                // ۱. تلاش برای گرفتن اطلاعات دقیق از خودِ دیت‌پیکر
+                const pDatePicker = $('#dateInput').data('datepicker');
+                
+                if (pDatePicker && pDatePicker.model && pDatePicker.model.date) {
+                    // اگر دیت‌پیکر فعال است، روز هفته و تاریخ را از خودش می‌گیریم (دقیق‌ترین حالت)
+                    const fullDate = pDatePicker.model.date.format('dddd - YYYY/MM/DD');
+                    document.getElementById('printDate').innerText = fullDate;
+                } else {
+                    // ۲. حالت اضطراری: اگر دیت‌پیکر در دسترس نبود، دستی محاسبه می‌کنیم
+                    // نکته مهم: ماه را منهای یک می‌کنیم تا روز هفته درست در بیاید
+                    const parts = dateVal.split('/').map(p => toEnglishDigits(p));
+                    const pDate = new persianDate([parts[0], parts[1] - 1, parts[2]]);
+                    const dayName = pDate.format('dddd');
+                    document.getElementById('printDate').innerText = `${dayName} - ${dateVal}`;
+                }
+            } catch (e) {
+                // ۳. اگر همه چیز خراب شد، فقط تاریخ را نشان بده
+                console.error("Date Error:", e);
+                document.getElementById('printDate').innerText = dateVal;
+            }
+            // --- پایان بخش اصلاح شده تاریخ ---
 
-    document.getElementById('printBuyer').innerText = buyerName;
-    // ... ادامه کدها بدون تغییر ...
-    document.getElementById('printDriver').innerText = document.getElementById('driverName').value || '................';
-    
-    // بقیه تابع prepareAndPrint را مثل قبل ادامه دهید
-    const printTbody = document.getElementById('printTableBody');
-    printTbody.innerHTML = '';
-    let printIndex = 1;
+            document.getElementById('printBuyer').innerText = buyerName;
+            document.getElementById('printDriver').innerText = document.getElementById('driverName').value || '................';
 
-    document.querySelectorAll('#inputTableBody tr').forEach(row => {
-        const name = row.querySelector('.item-name').value;
-        const qty = toEnglishDigits(row.querySelector('.qty-input').value);
+            const printTbody = document.getElementById('printTableBody');
+            printTbody.innerHTML = '';
+            let printIndex = 1;
 
-        if (name && name.trim() !== "" && qty > 0) {
-            printTbody.innerHTML += `<tr><td>${toPersianDigits(printIndex++)}</td><td style="text-align: right; padding-right: 15px;">${name}</td><td>${toPersianDigits(qty)}</td></tr>`;
+            document.querySelectorAll('#inputTableBody tr').forEach(row => {
+                const name = row.querySelector('.item-name').value;
+                const qty = toEnglishDigits(row.querySelector('.qty-input').value);
+
+                if (name && name.trim() !== "" && qty > 0) {
+                    printTbody.innerHTML += `<tr><td>${toPersianDigits(printIndex++)}</td><td style="text-align: right; padding-right: 15px;">${name}</td><td>${toPersianDigits(qty)}</td></tr>`;
+                }
+            });
+
+            if (printIndex === 1) printTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-gray-400">خالی</td></tr>';
+
+            const totals = calculateTotal();
+            document.getElementById('printSumRows').innerText = toPersianDigits(totals.sum);
+
+            const clusterRow = document.getElementById('printClusterRow');
+            if (totals.cluster > 0) {
+                clusterRow.style.display = 'table-row';
+                document.getElementById('printCluster').innerText = toPersianDigits(totals.cluster);
+            } else {
+                clusterRow.style.display = 'none';
+            }
+
+            document.getElementById('printGrandTotal').innerText = toPersianDigits(totals.grandTotal);
+
+            const currentNo = toEnglishDigits(document.getElementById('invoiceNo').value);
+            localStorage.setItem('invoiceNumber_v2', currentNo);
+
+            document.title = `بیجک - ${buyerName} - ${dateVal}`;
+            window.print();
         }
-    });
-    
-    // ... ادامه کدها ...
-    if (printIndex === 1) printTbody.innerHTML = '<tr><td colspan="3" class="py-4 text-gray-400">خالی</td></tr>';
-
-    const totals = calculateTotal();
-    document.getElementById('printSumRows').innerText = toPersianDigits(totals.sum);
-
-    const clusterRow = document.getElementById('printClusterRow');
-    if (totals.cluster > 0) {
-        clusterRow.style.display = 'table-row';
-        document.getElementById('printCluster').innerText = toPersianDigits(totals.cluster);
-    } else {
-        clusterRow.style.display = 'none';
-    }
-
-    document.getElementById('printGrandTotal').innerText = toPersianDigits(totals.grandTotal);
-
-    const currentNo = toEnglishDigits(document.getElementById('invoiceNo').value);
-    localStorage.setItem('invoiceNumber_v2', currentNo);
-
-    document.title = `بیجک - ${buyerName} - ${dateVal}`;
-    window.print();
-}
-
+        
         function resetForm() {
             if (confirm('آیا می‌خواهید فرم را پاک کرده و بیجک جدید صادر کنید؟')) {
                 window.location.reload();
